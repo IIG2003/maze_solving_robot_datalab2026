@@ -1,0 +1,53 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "../protos/Arena.proto"
+EXTERNPROTO "../protos/Obstacles.proto"
+EXTERNPROTO "../protos/TwoWheelRobot.proto"
+
+WorldInfo {
+  info [
+    "Robotics Competition - Elimination Task Arena"
+    "Section 1: Obstacle Avoidance (white floor)"
+    "Section 2: Maze Search (black floor, 9x4 grid of 25cm cells)"
+  ]
+  title "Elimination Arena"
+  basicTimeStep 16
+}
+Viewpoint {
+  orientation 0.4373572877186115 0.08041641977067589 -0.8956851022042771 2.8844226978861682
+  position 4.844545969222391 3.4619704735333805 4.840656753095851
+}
+TexturedBackground {
+  texture "empty_office"
+}
+TexturedBackgroundLight {
+  texture "empty_office"
+}
+DirectionalLight {
+  direction 0.3 0.4 -1
+  intensity 2.2
+  castShadows TRUE
+}
+Arena {
+}
+Obstacles {
+}
+TwoWheelRobot {
+  hidden position_0_0 817.7821345032231
+  hidden position_0_1 856.2205969701787
+  hidden linearVelocity_0 9.513119699635013e-15 -3.1805067379063903e-15 1.4210854715202004e-16
+  hidden angularVelocity_0 -7.232403702088022e-18 -4.385363896422419e-15 -5.404492340540207e-15
+  hidden rotation_1 0.8024972536949984 0.42189859572990757 -0.42190014545282795 1.7890726315488783
+  hidden linearVelocity_1 -1.1584467079062251e-14 3.6252577705871055e-15 -6.661878064472035e-17
+  hidden angularVelocity_1 2.919258017563462e-16 2.3805391553810656e-15 -1.3974170716784908e-15
+  hidden rotation_2 0.5248237643671717 0.6018959025022197 -0.6018981133933798 2.1749780060314112
+  hidden linearVelocity_2 6.914030761257744e-15 -2.0491906715981485e-15 -6.660652786178546e-17
+  hidden angularVelocity_2 5.823388440156885e-16 2.3810706905459325e-15 -5.571954612626957e-16
+  translation 2.196920382433858 1.0284276520818587 -2.704006833356698e-05
+  rotation -1.045152530954959e-05 1.0463317457031748e-05 0.9999999998906424 1.567865346236415
+  name "team_robot_template"
+  controller "main_controller"
+  bodyColor 1 0.55 0
+}
