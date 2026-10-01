@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robot Run Report</title>
+<style>
+  :root { color-scheme: light; }
+  .viz-root {
+    --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834;
+    --seq1: #cde2fb; --seq2: #9ec5f4; --seq3: #6da7ec; --seq4: #3987e5; --seq5: #256abf; --seq6: #184f95; --seq7: #0d366b;
+    --chip-on: #e8f0fb; --warn: #006300;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) { color-scheme: dark; }
+    :root:where(:not([data-theme="light"])) .viz-root {
+      --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --chip-on: #1d2a3d; --warn: #0ca30c;
+    }
+  }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  :root[data-theme="dark"] .viz-root {
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --s1: #3987e5; --s2: #d95926; --chip-on: #1d2a3d; --warn: #0ca30c;
+  }
+  html, body { margin: 0; background: #f9f9f7; }
+  @media (prefers-color-scheme: dark) { :root:where(:not([data-theme="light"])) body { background: #0d0d0d; } }
+  :root[data-theme="dark"] body { background: #0d0d0d; }
+  .viz-root { background: var(--page); color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; min-height: 100vh; padding: 24px 16px 48px; box-sizing: border-box; }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .sub { font-size: 13px; color: var(--ink-2); margin: 0 0 16px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .filters .lab { font-size: 12px; color: var(--ink-2); margin-right: 4px; }
+  .chip { font: inherit; font-size: 13px; color: var(--ink); background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; cursor: pointer; min-height: 32px; }
+  .chip:hover { background: var(--chip-on); }
+  .chip[aria-pressed="true"] { background: var(--chip-on); font-weight: 600; }
+  .chip[aria-pressed="true"]::before { content: "\2713\00a0"; font-weight: 700; }
+  .readout { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--ink-2); margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 4px 18px; min-height: 20px; }
+  .readout b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .tile .l { font-size: 12px; color: var(--ink-2); }
+  .tile .v { font-size: 22px; font-weight: 600; margin-top: 2px; }
+  .tile .u { font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 3px; }
+  .tile .n { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px 8px; margin-bottom: 12px; }
+  .card h2 { font-size: 14px; font-weight: 600; margin: 0; }
+  .card .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 14px; margin-bottom: 4px; }
+  .card .unit { font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--ink-2); }
+  .key { display: inline-block; width: 16px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 6px; border-radius: 1px; }
+  svg { display: block; width: 100%; overflow: visible; }
+  svg text { font-family: inherit; }
+  svg text.halo { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+  .hit:focus { outline: none; }
+  .hit:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+  .two { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .note { font-size: 12px; color: var(--muted); margin: 2px 0 6px; }
+  #tip { position: fixed; z-index: 10; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px;
+         box-shadow: 0 4px 14px rgba(0,0,0,0.12); display: none; max-width: 260px; }
+  #tip .h { color: var(--ink-2); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+  #tip .r { display: flex; gap: 8px; align-items: center; line-height: 1.6; }
+  #tip .r b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  #tip .r span.k { color: var(--ink-2); }
+  details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; }
+  summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 8px; }
+  th, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+  th { color: var(--ink-2); font-weight: 600; }
+  .tablewrap { max-height: 320px; overflow: auto; }
+  #errors { color: #d03b3b; font-size: 12px; }
+  @media (min-width: 860px) { .two { grid-template-columns: 1.15fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="viz-root" id="root">
+ <div class="wrap">
+  <h1>Robot run report</h1>
+  <p class="sub" id="sub"></p>
+  <div class="filters" id="filters" role="group" aria-label="Phase filter"></div>
+  <div class="readout" id="readout" aria-live="off"></div>
+  <div class="tiles" id="tiles"></div>
+  <div id="panels"></div>
+  <div class="two">
+    <div class="card"><div class="head"><h2>Path <span class="unit">start-relative odometry, metres</span></h2><div class="legend" id="mapLegend"></div></div><div id="map"></div></div>
+    <div class="card"><div class="head"><h2>How to read this</h2></div>
+      <p class="note">Speed, turn rate and clearance come from the robot's own sensors; wheel speeds are what the controller commanded. Acceleration is the change of measured speed (smoothed over 0.1 s) and the change of commanded speed (the controller's slew limit shows up as flat steps).</p>
+      <p class="note">Hover any chart (or tab to it and press the arrow keys) to read the values; every chart and the path share one cursor. Use the phase buttons to look at one part of the course.</p>
+      <p class="note">Tilt near 37&deg; means the robot has tipped onto its nose. A closest-beam reading under 3 cm means the body is touching something.</p>
+    </div>
+  </div>
+  <details id="tableview"><summary>Table view</summary><div class="tablewrap" id="tablebox"></div></details>
+  <div id="errors"></div>
+ </div>
+</div>
+<div id="tip"></div>
+<script id="run-data" type="application/json">__DATA__</script>
+<script>
+"use strict";
+window.onerror = function (message) { document.getElementById("errors").textContent = "Script error: " + message; };
+
+const D = JSON.parse(document.getElementById("run-data").textContent);
+const N = D.t.length;
+const SVGNS = "http://www.w3.org/2000/svg";
+let i0 = 0, i1 = N - 1, hover = null, phaseFilter = "All";
+
+const PANELS = [
+  { id: "speed",  title: "Speed",         unit: "m/s",     digits: 3, series: [{ k: "speed_measured",  name: "Measured",  c: "--s1" }, { k: "speed_commanded", name: "Commanded", c: "--s2" }], floor: 0, minTop: 0.22, ref: [{ y: 0.2, label: "wheel limit 0.2 m/s" }] },
+  { id: "accel",  title: "Acceleration",  unit: "m/s²", digits: 2, series: [{ k: "accel_measured",  name: "Measured",  c: "--s1" }, { k: "accel_commanded", name: "Commanded", c: "--s2" }], symmetric: true, minSpan: 1.5 },
+  { id: "turn",   title: "Turn rate",     unit: "rad/s",   digits: 2, series: [{ k: "turn_measured",   name: "Measured",  c: "--s1" }, { k: "turn_commanded",  name: "Commanded", c: "--s2" }], symmetric: true, minSpan: 1 },
+  { id: "wheels", title: "Wheel speed commands", unit: "rad/s", digits: 2, series: [{ k: "wheel_left", name: "Left wheel", c: "--s1" }, { k: "wheel_right", name: "Right wheel", c: "--s2" }], fixed: [-10.8, 10.8], ref: [{ y: 10, label: "motor limit 10 rad/s" }, { y: -10, label: "" }] },
+  { id: "clear",  title: "Clearance",     unit: "m",       digits: 3, series: [{ k: "front", name: "Front", c: "--s1" }, { k: "closest", name: "Closest beam", c: "--s2" }], fixed: [0, 0.54], ref: [{ y: 0.5, label: "sensor range 0.5 m" }] },
+  { id: "tilt",   title: "Tilt",          unit: "degrees", digits: 1, series: [{ k: "pitch", name: "Pitch", c: "--s1" }, { k: "roll", name: "Roll", c: "--s2" }], symmetric: true, minSpan: 10, ref: [{ y: 37, label: "tip-over about 37°" }, { y: -37, label: "" }] }
+];
+
+// ---------- helpers
+function el(name, attrs, parent) {
+  const node = document.createElementNS(SVGNS, name);
+  for (const key in attrs) node.setAttribute(key, attrs[key]);
+  if (parent) parent.appendChild(node);
+  return node;
+}
+function div(className, parent, text) { const node = document.createElement("div"); if (className) node.className = className; if (text !== undefined) node.textContent = text; if (parent) parent.appendChild(node); return node; }
+function niceStep(range, count) {
+  const raw = range / count, power = Math.pow(10, Math.floor(Math.log10(raw))), fraction = raw / power;
+  return (fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 2.5 ? 2.5 : fraction <= 5 ? 5 : 10) * power;
+}
+function niceTicks(low, high, count) {
+  const step = niceStep(high - low, count), ticks = [];
+  for (let v = Math.ceil(low / step - 1e-9) * step; v <= high + 1e-9; v += step) ticks.push(Math.abs(v) < step * 1e-6 ? 0 : +v.toFixed(10));
+  return ticks;
+}
+function fmt(value, digits) { return (value < 0 ? "−" : "") + Math.abs(value).toFixed(digits); }
+function bisect(time) { let lo = i0, hi = i1; while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (D.t[mid] <= time) lo = mid; else hi = mid; } return (time - D.t[lo] < D.t[hi] - time) ? lo : hi; }
+function css(name) { return getComputedStyle(document.getElementById("root")).getPropertyValue(name).trim(); }
+
+// ---------- phase filter
+const phases = []; D.phase.forEach(p => { if (phases.indexOf(p) < 0) phases.push(p); });
+function applyFilter(name) {
+  phaseFilter = name; i0 = N; i1 = -1;
+  for (let i = 0; i < N; i++) if (name === "All" || D.phase[i] === name) { if (i < i0) i0 = i; if (i > i1) i1 = i; }
+  if (i1 < i0) { i0 = 0; i1 = N - 1; }
+  hover = null; renderAll();
+}
+function buildFilters() {
+  const box = document.getElementById("filters"); box.textContent = "";
+  const label = div("lab", box, "Phase"); label.setAttribute("aria-hidden", "true");
+  ["All"].concat(phases).forEach(name => {
+    const b = document.createElement("button"); b.className = "chip"; b.type = "button"; b.textContent = name === "All" ? "Whole run" : name.replace("_", " ").toLowerCase().replace(/^./, c => c.toUpperCase());
+    b.setAttribute("aria-pressed", String(name === phaseFilter)); b.onclick = () => applyFilter(name); box.appendChild(b);
+  });
+}
+
+// ---------- tiles
+function pct(values, p) { const sorted = values.slice().sort((a, b) => a - b); return sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))] : 0; }
+function buildTiles() {
+  const box = document.getElementById("tiles"); box.textContent = "";
+  const idx = []; for (let i = i0; i <= i1; i++) idx.push(i);
+  const speed = idx.map(i => D.speed_measured[i]), duration = D.t[i1] - D.t[i0], distance = D.distance[i1] - D.distance[i0];
+  const moving = speed.filter(v => v > 0.02), mean = moving.length ? moving.reduce((a, b) => a + b, 0) / moving.length : 0;
+  const peak = Math.max.apply(null, speed), cruise = speed.filter(v => v > 0.18).length / Math.max(1, speed.length);
+  const accel = pct(idx.map(i => Math.abs(D.accel_measured[i])), 0.99);
+  const rmsJerk = Math.sqrt(idx.reduce((a, i) => a + D.jerk[i] * D.jerk[i], 0) / Math.max(1, idx.length));
+  const tilt = Math.max.apply(null, idx.map(i => Math.max(Math.abs(D.pitch[i]), Math.abs(D.roll[i]))));
+  const stalls = D.recoveries[i1] - D.recoveries[i0];
+  const tiles = [["Duration", duration.toFixed(1), "s", ""], ["Distance driven", distance.toFixed(2), "m", ""], ["Mean speed when moving", mean.toFixed(3), "m/s", "limit 0.2 m/s"], ["Peak speed", peak.toFixed(3), "m/s", Math.round(cruise * 100) + "% of the time above 0.18 m/s"],
+                 ["Peak acceleration", accel.toFixed(2), "m/s²", "99th percentile"], ["Jerk (RMS)", rmsJerk.toFixed(1), "m/s³", "lower is smoother"], ["Peak tilt", tilt.toFixed(1), "°", "tip-over about 37°"], ["Stall recoveries", String(stalls), "", "back-off and scan events"]];
+  tiles.forEach(t => { const tile = div("tile", box); div("l", tile, t[0]); const v = div("v", tile, t[1]); if (t[2]) { const u = document.createElement("span"); u.className = "u"; u.textContent = t[2]; v.appendChild(u); } if (t[3]) div("n", tile, t[3]); });
+  document.getElementById("sub").textContent = "__TITLE__ · " + (phaseFilter === "All" ? "whole run" : phaseFilter.replace("_", " ").toLowerCase()) + " · " + duration.toFixed(1) + " s · " + (idx.length) + " plotted points";
+}
+
+// ---------- time charts
+const MARGIN = { l: 54, r: 14, t: 8, b: 24 }, PLOT_H = 150;
+const views = {};   // panel id -> { svg, xOf, hoverGroup, dots, line, width }
+function drawPanel(panel) {
+  const host = document.getElementById("panel-" + panel.id), width = Math.max(300, host.clientWidth), height = PLOT_H + MARGIN.t + MARGIN.b;
+  host.textContent = "";
+  const svg = el("svg", { viewBox: "0 0 " + width + " " + height, role: "img", "aria-label": panel.title + " over time" }, host); svg.style.height = height + "px";
+  // domain
+  let lo = Infinity, hi = -Infinity;
+  panel.series.forEach(s => { for (let i = i0; i <= i1; i++) { const v = D[s.k][i]; if (v < lo) lo = v; if (v > hi) hi = v; } });
+  if (panel.fixed) { lo = panel.fixed[0]; hi = panel.fixed[1]; }
+  else if (panel.symmetric) { const m = Math.max(panel.minSpan, Math.abs(lo), Math.abs(hi)) * 1.08; lo = -m; hi = m; }
+  else { lo = Math.min(panel.floor !== undefined ? panel.floor : lo, lo); hi = Math.max(hi * 1.05, panel.minTop || 0); }
+  if (hi <= lo) hi = lo + 1;
+  const t0 = D.t[i0], t1 = D.t[i1], xOf = t => MARGIN.l + (t - t0) / (t1 - t0 || 1) * (width - MARGIN.l - MARGIN.r), yOf = v => MARGIN.t + (hi - v) / (hi - lo) * PLOT_H;
+  // grid + y ticks
+  niceTicks(lo, hi, 4).forEach(v => { el("line", { x1: MARGIN.l, x2: width - MARGIN.r, y1: yOf(v), y2: yOf(v), stroke: v === 0 && lo < 0 ? css("--axis") : css("--grid"), "stroke-width": 1 }, svg);
+    const label = el("text", { x: MARGIN.l - 8, y: yOf(v) + 4, "text-anchor": "end", "font-size": 11, fill: css("--muted") }, svg); label.textContent = String(+v.toFixed(3)); });
+  // x ticks
+  niceTicks(t0, t1, Math.max(3, Math.floor(width / 110))).forEach(t => { const label = el("text", { x: xOf(t), y: MARGIN.t + PLOT_H + 17, "text-anchor": "middle", "font-size": 11, fill: css("--muted") }, svg); label.textContent = String(+t.toFixed(2)); });
+  const unit = el("text", { x: width - MARGIN.r, y: MARGIN.t + PLOT_H + 17, "text-anchor": "end", "font-size": 11, fill: css("--muted") }, svg); unit.textContent = "seconds";
+  // baseline
+  el("line", { x1: MARGIN.l, x2: width - MARGIN.r, y1: MARGIN.t + PLOT_H, y2: MARGIN.t + PLOT_H, stroke: css("--axis"), "stroke-width": 1 }, svg);
+  // phase boundaries (names on the first chart only, centred in the span, skipped when the span is too narrow to hold them)
+  let spanStart = i0;
+  for (let i = i0 + 1; i <= i1 + 1; i++) if (i > i1 || D.phase[i] !== D.phase[i - 1]) {
+    if (i <= i1) el("line", { x1: xOf(D.t[i]), x2: xOf(D.t[i]), y1: MARGIN.t, y2: MARGIN.t + PLOT_H, stroke: css("--axis"), "stroke-width": 1 }, svg);
+    const left = xOf(D.t[spanStart]), right = xOf(D.t[Math.min(i, i1)]), name = D.phase[spanStart].replace("_", " ").toLowerCase();
+    if (panel.id === "speed" && right - left > name.length * 6.5 + 12) { const label = el("text", { x: (left + right) / 2, y: MARGIN.t + 11, "text-anchor": "middle", "font-size": 10, fill: css("--muted"), class: "halo" }, svg); label.textContent = name; }
+    spanStart = i;
+  }
+  // reference lines (solid, recessive) with a label at the right
+  (panel.ref || []).forEach(r => { if (r.y >= lo && r.y <= hi) { el("line", { x1: MARGIN.l, x2: width - MARGIN.r, y1: yOf(r.y), y2: yOf(r.y), stroke: css("--muted"), "stroke-width": 1, opacity: 0.55 }, svg);
+    if (r.label) { const label = el("text", { x: MARGIN.l + 4, y: yOf(r.y) - 4, "text-anchor": "start", "font-size": 10, fill: css("--muted"), class: "halo" }, svg); label.textContent = r.label; } } });
+  // series (2px round lines); the last series is drawn on top
+  panel.series.slice().reverse().forEach(s => { let d = ""; for (let i = i0; i <= i1; i++) d += (i === i0 ? "M" : "L") + xOf(D.t[i]).toFixed(1) + " " + yOf(D[s.k][i]).toFixed(1);
+    el("path", { d: d, fill: "none", stroke: css(s.c), "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg); });
+  // hover layer
+  const group = el("g", { style: "display:none" }, svg), line = el("line", { y1: MARGIN.t, y2: MARGIN.t + PLOT_H, stroke: css("--ink-2"), "stroke-width": 1 }, group);
+  const dots = panel.series.map(s => el("circle", { r: 4, fill: css(s.c), stroke: css("--surface"), "stroke-width": 2 }, group));
+  const hit = el("rect", { x: MARGIN.l, y: MARGIN.t, width: width - MARGIN.l - MARGIN.r, height: PLOT_H, fill: "transparent", tabindex: 0, class: "hit", role: "slider", "aria-label": panel.title + ": use the left and right arrow keys to read values" }, svg);
+  hit.style.cursor = "crosshair";
+  const toIndex = ev => { const box = svg.getBoundingClientRect(), scale = width / box.width, x = (ev.clientX - box.left) * scale; return bisect(t0 + (x - MARGIN.l) / (width - MARGIN.l - MARGIN.r) * (t1 - t0)); };
+  hit.addEventListener("pointermove", ev => { setHover(toIndex(ev), panel, ev.clientX, ev.clientY); });
+  hit.addEventListener("pointerleave", () => setHover(null));
+  hit.addEventListener("keydown", ev => { if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") { ev.preventDefault(); const step = (ev.shiftKey ? 20 : 3) * (ev.key === "ArrowRight" ? 1 : -1); const next = Math.max(i0, Math.min(i1, (hover === null ? i0 : hover) + step)); const box = svg.getBoundingClientRect(); setHover(next, panel, box.left + xOf(D.t[next]) * box.width / width, box.top + 30); } });
+  hit.addEventListener("blur", () => setHover(null));
+  views[panel.id] = { panel, svg, xOf, yOf, group, line, dots, width };
+}
+function buildPanels() {
+  const box = document.getElementById("panels"); box.textContent = "";
+  PANELS.forEach(panel => {
+    const card = div("card", box), head = div("head", card), title = document.createElement("h2"); title.textContent = panel.title; const unit = document.createElement("span"); unit.className = "unit"; unit.textContent = panel.unit; title.appendChild(unit); head.appendChild(title);
+    const legend = div("legend", head); panel.series.forEach(s => { const item = document.createElement("span"); const key = document.createElement("span"); key.className = "key"; key.style.borderColor = "var(" + s.c + ")"; item.appendChild(key); item.appendChild(document.createTextNode(s.name)); legend.appendChild(item); });
+    const host = div("", card); host.id = "panel-" + panel.id;
+  });
+  PANELS.forEach(drawPanel);
+}
+
+// ---------- path map
+let mapView = null;
+function drawMap() {
+  const host = document.getElementById("map"), width = Math.max(280, host.clientWidth); host.textContent = "";
+  let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity;
+  for (let i = i0; i <= i1; i++) { xmin = Math.min(xmin, D.x[i]); xmax = Math.max(xmax, D.x[i]); ymin = Math.min(ymin, D.y[i]); ymax = Math.max(ymax, D.y[i]); }
+  const pad = 0.12, w = Math.max(0.3, xmax - xmin) + 2 * pad, h = Math.max(0.3, ymax - ymin) + 2 * pad, scale = Math.min((width - 20) / w, 380 / h), height = h * scale + 20;
+  const px = x => 10 + (x - xmin + pad) * scale, py = y => 10 + (ymax + pad - y) * scale;
+  const svg = el("svg", { viewBox: "0 0 " + width + " " + height, role: "img", "aria-label": "Path of the robot coloured by speed" }, host); svg.style.height = height + "px";
+  const bins = ["", "", "", "", "", "", ""];
+  for (let i = i0; i < i1; i++) { const bin = Math.max(0, Math.min(6, Math.floor(Math.abs(D.speed_measured[i]) / 0.2 * 7))); bins[bin] += "M" + px(D.x[i]).toFixed(1) + " " + py(D.y[i]).toFixed(1) + "L" + px(D.x[i + 1]).toFixed(1) + " " + py(D.y[i + 1]).toFixed(1); }
+  bins.forEach((d, b) => { if (d) el("path", { d: d, fill: "none", stroke: css("--seq" + (b + 1)), "stroke-width": 3, "stroke-linecap": "round", "stroke-linejoin": "round" }, svg); });
+  // scale bar (0.5 m) and start / end direct labels
+  el("line", { x1: 10, x2: 10 + 0.5 * scale, y1: height - 6, y2: height - 6, stroke: css("--ink-2"), "stroke-width": 2, "stroke-linecap": "round" }, svg);
+  const bar = el("text", { x: 14 + 0.5 * scale, y: height - 2, "font-size": 11, fill: css("--ink-2") }, svg); bar.textContent = "0.5 m";
+  [[i0, "start"], [i1, "end"]].forEach(p => { el("circle", { cx: px(D.x[p[0]]), cy: py(D.y[p[0]]), r: 5, fill: css("--ink"), stroke: css("--surface"), "stroke-width": 2 }, svg);
+    const label = el("text", { x: px(D.x[p[0]]) + 9, y: py(D.y[p[0]]) - 7, "font-size": 11, fill: css("--ink-2") }, svg); label.textContent = p[1]; });
+  const dot = el("circle", { r: 6, fill: css("--s2"), stroke: css("--surface"), "stroke-width": 2, style: "display:none" }, svg);
+  const hit = el("rect", { x: 0, y: 0, width: width, height: height, fill: "transparent" }, svg); hit.style.cursor = "crosshair";
+  hit.addEventListener("pointermove", ev => { const box = svg.getBoundingClientRect(), k = width / box.width, mx = (ev.clientX - box.left) * k, my = (ev.clientY - box.top) * k; let best = i0, bestD = Infinity;
+    for (let i = i0; i <= i1; i++) { const dx = px(D.x[i]) - mx, dy = py(D.y[i]) - my, d = dx * dx + dy * dy; if (d < bestD) { bestD = d; best = i; } } setHover(best, null, ev.clientX, ev.clientY); });
+  hit.addEventListener("pointerleave", () => setHover(null));
+  mapView = { px, py, dot };
+  const legend = document.getElementById("mapLegend"); legend.textContent = "";
+  const lo = document.createElement("span"); lo.textContent = "0"; legend.appendChild(lo);
+  for (let b = 1; b <= 7; b++) { const sw = document.createElement("span"); sw.style.cssText = "display:inline-block;width:18px;height:8px;border-radius:2px;background:var(--seq" + b + ")"; legend.appendChild(sw); }
+  const hi = document.createElement("span"); hi.textContent = "0.2 m/s"; legend.appendChild(hi); legend.style.alignItems = "center"; legend.style.gap = "3px";
+}
+
+// ---------- hover: one cursor for every chart, a readout bar, and one tooltip
+function setHover(index, fromPanel, clientX, clientY) {
+  hover = index;
+  const tip = document.getElementById("tip");
+  PANELS.forEach(panel => { const v = views[panel.id]; if (!v) return;
+    if (index === null) { v.group.style.display = "none"; return; }
+    const x = v.xOf(D.t[index]); v.group.style.display = ""; v.line.setAttribute("x1", x); v.line.setAttribute("x2", x);
+    panel.series.forEach((s, k) => { v.dots[k].setAttribute("cx", x); v.dots[k].setAttribute("cy", v.yOf(D[s.k][index])); }); });
+  if (mapView) { if (index === null) mapView.dot.style.display = "none"; else { mapView.dot.style.display = ""; mapView.dot.setAttribute("cx", mapView.px(D.x[index])); mapView.dot.setAttribute("cy", mapView.py(D.y[index])); } }
+  renderReadout(index);
+  if (index === null) { tip.style.display = "none"; return; }
+  const panel = fromPanel || PANELS[0]; tip.textContent = "";
+  const head = div("h", tip, "t = " + D.t[index].toFixed(2) + " s · " + D.phase[index].replace("_", " ").toLowerCase() + (D.stalled[index] ? " · stalled" : ""));
+  const rows = fromPanel ? panel.series.map(s => [s.name, D[s.k][index], panel.digits, s.c, panel.unit]) : [["Speed", D.speed_measured[index], 3, "--s1", "m/s"], ["Position", null, 0, "--s2", "x " + D.x[index].toFixed(2) + " m, y " + D.y[index].toFixed(2) + " m"]];
+  rows.forEach(r => { const row = div("r", tip), key = document.createElement("span"); key.className = "key"; key.style.borderColor = "var(" + r[3] + ")"; row.appendChild(key);
+    const value = document.createElement("b"); value.textContent = r[1] === null ? r[4] : fmt(r[1], r[2]) + " " + r[4]; row.appendChild(value); const name = document.createElement("span"); name.className = "k"; name.textContent = r[0]; row.appendChild(name); });
+  tip.style.display = "block";
+  const w = tip.offsetWidth, h = tip.offsetHeight; let left = clientX + 14, top = clientY + 14;
+  if (left + w > window.innerWidth - 8) left = clientX - w - 14; if (top + h > window.innerHeight - 8) top = clientY - h - 14;
+  tip.style.left = Math.max(8, left) + "px"; tip.style.top = Math.max(8, top) + "px";
+}
+function renderReadout(index) {
+  const box = document.getElementById("readout"); box.textContent = "";
+  if (index === null) { box.textContent = "Hover a chart or the path (or tab to a chart and press the arrow keys) to read every value at that moment."; return; }
+  const items = [["t", D.t[index].toFixed(2) + " s"], ["phase", D.phase[index].replace("_", " ").toLowerCase()], ["speed", fmt(D.speed_measured[index], 3) + " m/s"], ["accel", fmt(D.accel_measured[index], 2) + " m/s²"], ["turn", fmt(D.turn_measured[index], 2) + " rad/s"],
+                 ["front", D.front[index].toFixed(3) + " m"], ["closest", D.closest[index].toFixed(3) + " m"], ["pitch", fmt(D.pitch[index], 1) + "°"], ["roll", fmt(D.roll[index], 1) + "°"]];
+  items.forEach(it => { const span = document.createElement("span"); span.appendChild(document.createTextNode(it[0] + " ")); const b = document.createElement("b"); b.textContent = it[1]; span.appendChild(b); box.appendChild(span); });
+}
+
+// ---------- table view (every 1 s of the selected slice)
+function buildTable() {
+  const box = document.getElementById("tablebox"); box.textContent = "";
+  const table = document.createElement("table"), head = document.createElement("tr");
+  ["time (s)", "phase", "speed (m/s)", "accel (m/s²)", "turn (rad/s)", "front (m)", "closest (m)", "pitch (°)", "roll (°)"].forEach(h => { const th = document.createElement("th"); th.textContent = h; head.appendChild(th); }); table.appendChild(head);
+  let next = D.t[i0];
+  for (let i = i0; i <= i1; i++) if (D.t[i] >= next) { next = D.t[i] + 1;
+    const tr = document.createElement("tr"); [D.t[i].toFixed(1), D.phase[i].replace("_", " ").toLowerCase(), fmt(D.speed_measured[i], 3), fmt(D.accel_measured[i], 2), fmt(D.turn_measured[i], 2), D.front[i].toFixed(3), D.closest[i].toFixed(3), fmt(D.pitch[i], 1), fmt(D.roll[i], 1)]
+      .forEach(v => { const td = document.createElement("td"); td.textContent = v; tr.appendChild(td); }); table.appendChild(tr); }
+  box.appendChild(table);
+}
+
+function renderAll() { buildFilters(); buildTiles(); buildPanels(); drawMap(); buildTable(); renderReadout(null); }
+renderAll();
+let resizeTimer = null; new ResizeObserver(() => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { PANELS.forEach(drawPanel); drawMap(); }, 120); }).observe(document.getElementById("root"));
+</script>
+</body>
+</html>
