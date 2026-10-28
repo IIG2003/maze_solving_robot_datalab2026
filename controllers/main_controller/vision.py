@@ -1,12 +1,3 @@
-"""
-vision.py - floor colour classification with the single tilted camera.
-
-  near  : floor of the current cell just ahead of the robot (bottom rows)
-  ahead : floor of the next cell in the facing direction (upper rows)
-
-Colours: 'white' (S1 floor / maze walls), 'black' (S2 floor / cubes),
-'red' (start / transition / end markers), 'blue', 'green', or None.
-"""
 import config as cfg
 
 
@@ -27,7 +18,6 @@ def classify(r, g, b):
 
 
 def region_colour(bot, rows):
-    """Majority colour over a band of rows (centre columns only)."""
     img = bot.cam.getImage()
     if not img:
         return None
@@ -40,7 +30,7 @@ def region_colour(bot, rows):
     for y in rows:
         base = y * w
         for x in range(c0, c1):
-            i = 4 * (base + x)              # BGRA
+            i = 4 * (base + x)
             b, g, r = img[i], img[i + 1], img[i + 2]
             if cfg.CAM_DEBUG:
                 sums[0] += r; sums[1] += g; sums[2] += b
@@ -54,7 +44,6 @@ def region_colour(bot, rows):
     if not votes:
         return None
     best = max(votes, key=votes.get)
-    # require a clear majority of the band
     return best if votes[best] >= 0.4 * total else None
 
 
@@ -67,7 +56,6 @@ def ahead(bot):
 
 
 def stable(bot, fn, frames=2):
-    """Read a region over several frames; return the colour only if consistent."""
     first = fn(bot)
     for _ in range(frames - 1):
         bot.step()

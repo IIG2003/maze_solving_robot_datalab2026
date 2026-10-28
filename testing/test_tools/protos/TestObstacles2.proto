@@ -1,0 +1,198 @@
+#VRML_SIM R2025a utf8
+PROTO TestObstacles2 [
+] {
+  Group {
+    children [
+      Solid {
+        translation 0.7031 0.6078 0.05
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 0.1 0.1 0.1
+            }
+          }
+        ]
+        name "obstacle_0"
+        boundingObject Box {
+          size 0.1 0.1 0.1
+        }
+      }
+      Solid {
+        translation 0.7031 0.5078 0.05
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 0.1 0.1 0.1
+            }
+          }
+        ]
+        name "obstacle_1"
+        boundingObject Box {
+          size 0.1 0.1 0.1
+        }
+      }
+      Solid {
+        translation 0.7031 0.4078 0.05
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 0.1 0.1 0.1
+            }
+          }
+        ]
+        name "obstacle_2"
+        boundingObject Box {
+          size 0.1 0.1 0.1
+        }
+      }
+      Solid {
+        translation 1.7025 0.6148 0.05
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 0.1 0.1 0.1
+            }
+          }
+        ]
+        name "obstacle_3"
+        boundingObject Box {
+          size 0.1 0.1 0.1
+        }
+      }
+      Solid {
+        translation 1.6025 0.6148 0.05
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 0.1 0.1 0.1
+            }
+          }
+        ]
+        name "obstacle_4"
+        boundingObject Box {
+          size 0.1 0.1 0.1
+        }
+      }
+      Solid {
+        translation 1.6025 0.7148 0.05
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 0.1 0.1 0.1
+            }
+          }
+        ]
+        name "obstacle_5"
+        boundingObject Box {
+          size 0.1 0.1 0.1
+        }
+      }
+      Solid {
+        translation 1.7025 0.7148 0.05
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 0.1 0.1 0.1
+            }
+          }
+        ]
+        name "obstacle_6"
+        boundingObject Box {
+          size 0.1 0.1 0.1
+        }
+      }
+      Solid {
+        translation 1.1937 0.3954 0.05
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 0.1 0.1 0.1
+            }
+          }
+        ]
+        name "obstacle_7"
+        boundingObject Box {
+          size 0.1 0.1 0.1
+        }
+      }
+      Solid {
+        translation 1.1849 0.8058 0.05
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 0.1 0.1 0.1
+            }
+          }
+        ]
+        name "obstacle_8"
+        boundingObject Box {
+          size 0.1 0.1 0.1
+        }
+      }
+      Solid {
+        translation 1.7313 1.1596 0.05
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 0.1 0.1 0.1
+            }
+          }
+        ]
+        name "obstacle_9"
+        boundingObject Box {
+          size 0.1 0.1 0.1
+        }
+      }
+    ]
+  }
+}

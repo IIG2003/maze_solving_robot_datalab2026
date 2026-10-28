@@ -1,0 +1,26 @@
+[
+ [
+  "Current controller: 42 / 42 runs pass",
+  "21 arenas (official, D1-D5, R1-R3, A1-A12), each as a full run and a dedicated Section 2 attempt. Every run: correct LED, every tile found with the right colour, whole body inside the end cell, no collisions, no tipping, never entered the end cell early."
+ ],
+ [
+  "Change 1 - commit to the chosen target (fixes livelocks)",
+  "pick_target() used to re-optimise the whole tour at every stop while the robot drives only the first straight run of it, so two near-equal tours could alternate forever. The previous controller looped until the time limit on A4 Islands and on the new A7 Ladder (both runs each). The target chosen at a stop is now kept while it is still unresolved and reachable. A4: 132 s, A7: 182 s. Also D5 Loops 26 s faster, A11 Braided 16 s faster."
+ ],
+ [
+  "Change 2 - glance into a dead end beside the robot before leaving (the R3 re-running)",
+  "The tour only knows corridors already seen, so it sometimes chose 'go on, come back later to look into this dead end' - and once the shortcut was discovered, the come-back became driving the same cells again (R3: (3,4)<->(4,4), (2,9)<->(3,9)). A known dead end right beside the robot is now viewed immediately (one turn). R3: 37 -> 33 cell moves, re-driven 6 -> 2, 13 s faster."
+ ],
+ [
+  "Change 3 - don't drive into a dead end whose tile the camera already saw",
+  "Tiles only lie in dead ends, so a cell where the camera sees a blue/green tile from the neighbouring cell is counted and treated as a dead end: it is marked done (no visit), its other three sides are recorded as walls (so no route is planned through it), and a planned drive into it is skipped. Before, the robot drove into 37 of the 82 tiles it had already seen. Also added: a run is shortened when the front sensor sees a wall part-way along it (safety net for routes through unknown edges). Result vs the glance+commit version: no run slower, full runs 5.7% faster in total (3488 -> 3290 s), 949 vs 1025 cell moves; official arena maze 150 -> 131 s, A7 Ladder 182 -> 145 s, A2 203 -> 175 s."
+ ],
+ [
+  "Trade-offs",
+  "A2 Nine tiles is 16 s slower and R1 / A10 about 4 s slower: after a glance the robot faces a different way and the tour breaks a near-tie differently. Over the 30 runs both controllers finish (A4, A7 excluded): same or fewer cell moves everywhere except A2. Offline on 400 random mazes: 400/400 correct, 1.6% fewer cells driven."
+ ],
+ [
+  "Rollback",
+  "test_tools/backup_controller_2026-10-28/ = controller at the start of this session; test_tools/backup_controller_2026-10-28_v2/ = glance+commit version (before change 3). Only section2.py changed."
+ ]
+]

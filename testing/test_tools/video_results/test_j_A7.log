@@ -1,0 +1,25 @@
+[bot] start zone, pose (2.315, 0.125)
+[bot] Section 1 start at (2.315, 0.125)
+[bot] Section 1 done in 16.1s, travelled 2.37m
+[bot] gap x fix: 0.246 -> 0.254
+[bot] Section 2 start in cell (1, 1)
+[bot]   tile green seen ahead in cell (1, 3)
+[bot]   tile green seen ahead in cell (4, 5)
+[bot]   tile blue seen ahead in cell (4, 2)
+[bot]   tile blue seen ahead in cell (1, 6)
+[bot]   tile green seen ahead in cell (1, 8)
+[bot]   tile blue seen ahead in cell (4, 7)
+[bot]   tile green seen ahead in cell (4, 8)
+[bot] exploration done in 102.2s: blue=3 green=4
+[bot] maze map:
++---+---+---+---+---+---+---+---+---+
+| . | B | . |   | G | . | B | G |   |
++   +   +   +   +   +   +   +   +   +
+| .   .   .   .   .   .   .   .     |
++   +---+   +---+   +---+   +---+   +
+| .   .   .   .   .   .   .   .   . |
++   +   +   +   +   +   +   +   +   +
+| . |   | G | . |   | B | . | G |   |
++---+---+---+---+---+---+---+---+---+
+[bot] Section 2 done in 107.1s
+[bot] FINISH  majority=green  t=128.0s  distance=13.67m

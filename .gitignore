@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+# Webots per-user files of the test worlds
+testing/test_run/worlds/.*
+# link to the controller under test (see README, "Running the tests")
+testing/test_run/controllers/main_controller

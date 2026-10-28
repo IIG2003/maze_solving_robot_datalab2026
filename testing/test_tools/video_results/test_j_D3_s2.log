@@ -1,0 +1,22 @@
+[bot] maze entrance (floor behind: white), pose (0.220, 1.275)
+[bot] Section 2 start in cell (1, 1)
+[bot]   tile blue seen ahead in cell (4, 2)
+[bot]   tile blue under robot in cell (1, 3)
+[bot]   tile green seen ahead in cell (4, 4)
+[bot]   tile green seen ahead in cell (4, 5)
+[bot]   tile blue under robot in cell (1, 6)
+[bot]   tile blue seen ahead in cell (4, 7)
+[bot]   tile green seen ahead in cell (1, 8)
+[bot] exploration done in 118.4s: blue=4 green=3
+[bot] maze map:
++---+---+---+---+---+---+---+---+---+
+| . | B | . | G | G | . | B | . |   |
++   +   +   +   +   +   +   +   +   +
+| . | . | . | . | . | . | . | . | . |
++   +   +   +   +   +   +   +   +   +
+| .   .   .   .   .   .   .   .   . |
++   +   +   +   +   +   +   +   +   +
+| . | . | B | . | . | B | . | G | . |
++---+---+---+---+---+---+---+---+---+
+[bot] Section 2 done in 128.9s
+[bot] FINISH  majority=blue  t=132.8s  distance=14.21m

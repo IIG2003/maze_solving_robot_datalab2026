@@ -1,11 +1,3 @@
-"""
-section1.py - obstacle field navigation.
-
-The robot builds an occupancy grid of Section 1 from its distance sensors while
-driving, and continuously re-plans an A* path to the gap in the top wall.
-Unknown cells are treated as free, so the robot heads straight for the goal and
-bends its route around cubes as soon as it sees them.
-"""
 import heapq
 import math
 
@@ -22,9 +14,9 @@ class Grid:
         self.nx = int(round(cfg.ARENA_W / self.res))
         self.ny = int(round(cfg.S1_H / self.res))
         n = self.nx * self.ny
-        self.occ = [0] * n              # hit score, occupied when >= 1
-        self.fixed = bytearray(n)       # arena boundary (never cleared)
-        self.dist = [1.0] * n           # distance (m) from cell centre to nearest obstacle
+        self.occ = [0] * n
+        self.fixed = bytearray(n)
+        self.dist = [1.0] * n
         self.need_full = False
         self.dirty = False
         self.k = int(math.ceil(cfg.R_SOFT / self.res))
@@ -41,7 +33,6 @@ class Grid:
                     self.occ[self.idx(i, j)] = 99
         self._recompute()
 
-    # ------------------------------------------------------------ helpers
     def idx(self, i, j):
         return j * self.nx + i
 
@@ -57,7 +48,6 @@ class Grid:
     def occupied(self, k):
         return self.occ[k] >= 1
 
-    # ------------------------------------------------------ distance field
     def _stamp(self, i0, j0):
         k = self.k
         res = self.res
@@ -82,7 +72,6 @@ class Grid:
                     self._stamp(i, j)
         self.need_full = False
 
-    # ------------------------------------------------------------ mapping
     def update(self, bot):
         res = self.res
         step = res * 0.5
@@ -93,7 +82,6 @@ class Grid:
             hit = r < cfg.DS_HIT and r < cfg.MAP_RANGE
             free_len = (r - 0.02) if r < cfg.DS_HIT else cfg.FREE_RANGE
             free_len = min(free_len, cfg.FREE_RANGE)
-            # clear free space along the ray
             last = -1
             n = int(free_len / step)
             for s in range(1, n + 1):
@@ -110,7 +98,6 @@ class Grid:
                     if self.occ[kk] == 0:
                         self.need_full = True
                         self.dirty = True
-            # mark the hit (pushed slightly into the obstacle)
             if hit:
                 px, py = sx + ca * (r + 0.008), sy + sa * (r + 0.008)
                 i, j = int(px / res), int(py / res)
@@ -124,7 +111,6 @@ class Grid:
                             self.dirty = True
 
     def clear_around(self, x, y, radius):
-        """Forget mapped obstacles near (x, y) (used when drift corrupted the map)."""
         ci, cj = self.cell_of(x, y)
         k = int(math.ceil(radius / self.res))
         for j in range(cj - k, cj + k + 1):
@@ -134,7 +120,6 @@ class Grid:
         self.need_full = True
         self.dirty = True
 
-    # ------------------------------------------------------------ planning
     def cost(self, k):
         d = self.dist[k]
         if d < cfg.R_FORBID:
@@ -157,7 +142,6 @@ class Grid:
         g = self.idx(gi, gj)
         nx = self.nx
         res = self.res
-        # the start cell and its close surroundings are always allowed (escape)
         g_cost = {s: 0.0}
         parent = {s: None}
         heap = [(0.0, s)]
@@ -203,7 +187,6 @@ class Grid:
 
 
 def _lookahead(path, x, y, start_idx):
-    """Index of the closest path point, and the pursuit target beyond it."""
     best, bi = 1e9, start_idx
     for i in range(start_idx, min(len(path), start_idx + 40)):
         d = (path[i][0] - x) ** 2 + (path[i][1] - y) ** 2
@@ -216,13 +199,9 @@ def _lookahead(path, x, y, start_idx):
 
 
 def reactive(bot, goal, seconds):
-    """
-    Bug-style fallback when A* has no path: head for the goal, and when the
-    front is blocked follow the obstacle on the side that is more open.
-    """
     gx, gy = goal
     end = bot.t + seconds
-    side = 1.0 if bot.d['ds_l'] > bot.d['ds_r'] else -1.0     # +1: turn left
+    side = 1.0 if bot.d['ds_l'] > bot.d['ds_r'] else -1.0
     while bot.t < end:
         if math.hypot(gx - bot.x, gy - bot.y) < cfg.S1_GOAL_TOL:
             break
@@ -231,11 +210,10 @@ def reactive(bot, goal, seconds):
             bot.back_off(0.2)
             continue
         if f < 0.12 or min(bot.d['ds_fl45'], bot.d['ds_fr45']) < 0.08:
-            w = 3.0 * side                                  # turn away from the obstacle
+            w = 3.0 * side
             bot.wheels(-w, w)
         else:
             err = wrap(math.atan2(gy - bot.y, gx - bot.x) - bot.th)
-            # keep a little clearance from the followed side
             near = bot.d['ds_fr70'] if side > 0 else bot.d['ds_fl70']
             if near < 0.07:
                 err = 0.3 * side
@@ -255,7 +233,7 @@ def run(bot, goal=cfg.S1_GOAL):
 
     path, pidx, last_plan = None, 0, -1e9
     dog = Watchdog(bot)
-    fails = 0                                   # consecutive failed plans
+    fails = 0
     try:
         while True:
             gx, gy = goal
@@ -280,7 +258,6 @@ def run(bot, goal=cfg.S1_GOAL):
                     continue
                 fails = 0
 
-            # emergency: something right in front
             if bot.front_min() < cfg.EMERGENCY_DIST:
                 bot.back_off(0.25)
                 path = None

@@ -1,0 +1,42 @@
+[
+ [
+  "Current controller: 42 / 42 runs pass",
+  "21 arenas (official, D1-D5, R1-R3, A1-A12), each as a full run and a dedicated Section 2 attempt. Every run: correct LED, every tile found with the right colour, whole body inside the end cell (7.0-8.2 cm margin), no collisions, never entered the end cell early, still after the LED. Longest standstill in any run 3.7 s (rule limit 15 s). The controller at the start of the session passed 38 / 42 (looped until the time limit on A4 Islands and A7 Ladder)."
+ ],
+ [
+  "Speed",
+  "Official arena full run 169.9 s at the start of the session -> 152.6 s (changes 1-3) -> 117.1 s now (Section 1 20.1 s, maze 96.3 s; Section 2 attempt 99.4 s). Over the 19 arenas the original controller could finish, full runs total 3163 s -> 2310 s (-27%). Full runs in all 21 arenas: 2552 s, 949 cell moves (original: 1328 moves including its looping runs)."
+ ],
+ [
+  "Change 1 - commit to the chosen target (fixes livelocks)",
+  "pick_target() re-optimised the whole tour at every stop while the robot drives only the first straight run of it, so two near-equal tours could alternate forever (A4, A7). The target chosen at a stop is now kept while it is still unresolved and reachable."
+ ],
+ [
+  "Change 2 - glance into a dead end beside the robot before leaving",
+  "A known dead end right beside the robot is viewed immediately (one turn) instead of being left for a later come-back that re-drives the same cells (R3: re-driven moves 6 -> 2)."
+ ],
+ [
+  "Change 3 - don't drive into a dead end whose tile the camera already saw",
+  "Tiles only lie in dead ends, so a cell where the camera sees a blue/green tile from the neighbouring cell is counted, marked done and sealed (its other sides recorded as walls), and a planned drive into it is skipped. Before, the robot drove into 37 of the 82 tiles it had already seen. Full runs 5.7% faster in total."
+ ],
+ [
+  "Change 4 - full speed over cells already driven through",
+  "Straight runs of 2+ cells over visited cells use S2_KNOWN = 10 rad/s (motor maximum) instead of S2_CRUISE = 8: nothing new to scan there. Full runs 1.7% faster in total; A8 Spiral 9 s faster."
+ ],
+ [
+  "Change 5 - quicker stops and turns (motion.py)",
+  "drive_axis brakes at a constant DRIVE_DECEL = 0.5 m/s^2 (full speed until ~4 cm before the stop) instead of slowing proportionally over the last 8 cm and creeping the final centimetres; turn_to brakes at TURN_DECEL = 15 rad/s^2 and finishes the last ~10 deg with TURN_K_END = 20 instead of a soft P controller. About 1 s saved at every stop: all 42 runs 22% faster (6105 -> 4743 s), Section 1 about 1 s faster, end-cell margins unchanged or slightly larger, no collisions."
+ ],
+ [
+  "Remaining risk - long drives over known cells",
+  "The robot never stands still, but in some mazes it drives back over known cells for more than 15 s before reaching a new one (A8 Spiral 42 s, A10 30 s, A1 25 s, A2 22 s, A12 20 s, A3 19 s, D4 19 s; official arena 11 s). These are the forced drives back out of long dead-end branches: the spiral's only exit is a 23-cell corridor, at least 29 s at the motor's top speed. A judge reading 'no meaningful progress' as stuck / looping / spinning should not count them."
+ ],
+ [
+  "Test setup",
+  "OFF and A1-A12: visible Webots window, real time (test_judge supervisor forces the speed mode). D1-D5 and R1-R3: rendered window, fast mode. Runs are deterministic: the same world gives the same times (within 0.05 s) rendered or hidden, real time or fast."
+ ],
+ [
+  "Rollback",
+  "test_tools/backup_controller_2026-10-28/ = start of the session; _v2 = changes 1-2; _v3 = changes 1-3; _v4 = changes 1-4. Changed files: section2.py, config.py, motion.py."
+ ]
+]
