@@ -1,7 +1,8 @@
 # generate a random test arena + obstacles + world (TEST ONLY)
-import random, sys
+import os, random, sys
 seed = int(sys.argv[1]); random.seed(seed)
-ROOT = 'C:/Users/User/Documents/robotic/pera_bot_2026/PeraBots_UC_v2/PeraBots_UC/'
+# repo root, two levels above testing/test_tools/
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')) + '/'
 R, C = 4, 9
 X0, Y0, CELL = 0.22, 1.455, 0.25
 # ---- maze: DFS perfect maze + a few loops
